@@ -13,23 +13,40 @@
 
       <!-- 状态选择 -->
       <div class="filter-group select-group">
-        <select v-model="filters.status" class="modern-select">
-          <option :value="1">待执行</option>
-          <option :value="2">执行中</option>
-          <option :value="4">成功</option>
-          <option :value="8">失败</option>
+        <select
+          v-model="filters.status"
+          class="modern-select"
+        >
+          <option :value="1">
+            待执行
+          </option>
+          <option :value="2">
+            执行中
+          </option>
+          <option :value="4">
+            成功
+          </option>
+          <option :value="8">
+            失败
+          </option>
         </select>
-        <div class="select-arrow"></div>
+        <div class="select-arrow" />
       </div>
 
       <!-- 筛选按钮 -->
-      <button @click="loadTasks" class="filter-button">
+      <button
+        class="filter-button"
+        @click="loadTasks"
+      >
         筛选
         <span class="button-icon">→</span>
       </button>
     </div>
 
-    <TaskList :tasks="tasks" @refresh="loadTasks" />
+    <TaskList
+      :tasks="tasks"
+      @refresh="loadTasks"
+    />
   </div>
 </template>
 

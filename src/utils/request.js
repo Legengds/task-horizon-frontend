@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const service = axios.create({
-  baseURL: 'http://127.0.0.1:8081/', // 替换为实际后端地址
+  // baseURL: 'http://localhost:8081/', // 替换为实际后端地址
   timeout: 5000
 })
 

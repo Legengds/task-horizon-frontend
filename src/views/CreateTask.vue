@@ -1,6 +1,10 @@
+/* eslint-disable */
 <template>
   <div class="form-container">
-    <form @submit.prevent="handleSubmit" class="modern-form">
+    <form
+      class="modern-form"
+      @submit.prevent="handleSubmit"
+    >
       <div class="form-header">
         <h2>创建新任务</h2>
         <p>请填写任务详细信息</p>
@@ -16,13 +20,26 @@
         <label class="input-label">用户ID</label>
       </div>
 
-      <div class="input-group">
+      <!-- <div class="input-group">
         <input 
           v-model="formData.task_type" 
           required 
           class="modern-input"
           placeholder=" "
         >
+        <label class="input-label">任务类型</label>
+      </div> -->
+      <div class="input-group">
+        <select
+          v-model="formData.task_type"
+          class="modern-select"
+          required
+        >
+          <option value="" disabled>请选择任务类型</option>
+          <option v-for="type in taskTypes" :key="type" :value="type">
+            {{ type }}
+          </option>
+        </select>
         <label class="input-label">任务类型</label>
       </div>
 
@@ -36,22 +53,61 @@
         <label class="input-label">任务优先级</label>
       </div>
 
-      <button type="submit" class="submit-btn">
+      <button
+        type="submit"
+        class="submit-btn"
+      >
         立即创建
         <span class="btn-icon">→</span>
       </button>
     </form>
 
     <!-- 操作反馈提示 -->
-    <div :class="['notification', notification.type]" v-if="notification.show">
+    <div
+      v-if="notification.show"
+      :class="['notification', notification.type]"
+    >
       {{ notification.message }}
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref,onMounted } from 'vue'
+import request from '@/utils/request'
 import { createTask } from '@/api/asyncTask'
+// 新增任务类型列表
+const taskTypes = ref([])
+
+const fetchTaskTypes = async () => {
+  try {
+    const response = await request.get('/api/task_schedule_cfg/type_list')
+    console.log('任务类型响应数据:', response)
+    
+    // 修改这里的判断逻辑
+    if (Array.isArray(response)) {
+      // 如果response直接是数组
+      taskTypes.value = response
+    } else if (response && response.code === 0) {
+      // 如果response是对象且包含code和result
+      taskTypes.value = response.result
+    }
+    
+    // 添加调试输出
+    console.log('设置后的任务类型列表:', taskTypes.value)
+  } catch (error) {
+    console.error('获取任务类型失败:', error)
+    taskTypes.value = []
+  }
+}
+
+
+const isLoading = ref(false)
+onMounted(async () => {
+  isLoading.value = true
+  await fetchTaskTypes()
+  isLoading.value = false
+})
 
 const initialFormData = { 
   user_id: '', 
@@ -82,6 +138,25 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+.modern-select {
+  width: 100%;
+  height: 50px;
+  padding: 0 1rem;
+  border: 2px solid #e0e7ff;
+  border-radius: 0.8rem;
+  font-size: 1rem;
+  background: white url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 1rem center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  transition: all 0.3s ease;
+}
+
+.modern-select:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1);
+  outline: none;
+}
 .form-container {
   display: flex;
   justify-content: center;

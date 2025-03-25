@@ -1,12 +1,16 @@
 <template>
   <!-- 路由导航菜单 -->
   <nav>
-    <router-link to="/dashboard">任务看板</router-link> |
-    <router-link to="/create">新建任务</router-link>
+    <router-link to="/dashboard">
+      任务看板
+    </router-link> |
+    <router-link to="/create">
+      新建任务
+    </router-link>
   </nav>
   
   <!-- 路由内容渲染区 -->
-  <router-view/>
+  <router-view />
 </template>
 
 <style>
