@@ -6,7 +6,7 @@
     </router-link> |
     <router-link to="/create">
       新建任务
-    </router-link>
+    </router-link> |
     <router-link to="/datapanel">
       数据面板
     </router-link>
