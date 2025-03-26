@@ -2,13 +2,18 @@
   <div class="modern-dashboard">
     <div class="filter-container">
       <!-- 任务类型输入 -->
-      <div class="filter-group input-group">
-        <input 
+      <div class="input-group">
+        <select
           v-model="filters.taskType"
-          class="modern-input"
-          placeholder=" "
+          class="modern-select"
+          required
         >
-        <label class="input-label">任务类型</label>
+          <option value="" disabled>请选择任务类型</option>
+          <option v-for="type in taskTypes" :key="type" :value="type">
+            {{ type }}
+          </option>
+        </select>
+         
       </div>
 
       <!-- 状态选择 -->
@@ -17,6 +22,9 @@
           v-model="filters.status"
           class="modern-select"
         >
+        <option :value="0">
+            全部
+          </option>
           <option :value="1">
             待执行
           </option>
@@ -54,12 +62,45 @@
 import { ref, onMounted } from 'vue'
 import { getTaskList } from '@/api/asyncTask'
 import TaskList from '@/components/TaskList.vue'
+import request from '@/utils/request'
 
 const tasks = ref([])
 const filters = ref({
   taskType: '', // 对应后端的 task_type 参数
-  status: 1,    // 默认选中"待执行"
-  limit: 10
+  status: 0,    // 默认选中"全部"
+  limit: 100
+})
+// 新增任务类型列表
+const taskTypes = ref([])
+
+const fetchTaskTypes = async () => {
+  try {
+    const response = await request.get('/api/task_schedule_cfg/type_list')
+    console.log('任务类型响应数据:', response)
+    
+    // 修改这里的判断逻辑
+    if (Array.isArray(response)) {
+      // 如果response直接是数组
+      taskTypes.value = response
+    } else if (response && response.code === 0) {
+      // 如果response是对象且包含code和result
+      taskTypes.value = response.result
+    }
+    
+    // 添加调试输出
+    console.log('设置后的任务类型列表:', taskTypes.value)
+  } catch (error) {
+    console.error('获取任务类型失败:', error)
+    taskTypes.value = []
+  }
+}
+
+
+const isLoading = ref(false)
+onMounted(async () => {
+  isLoading.value = true
+  await fetchTaskTypes()
+  isLoading.value = false
 })
 
 const loadTasks = async () => {
@@ -79,6 +120,7 @@ onMounted(loadTasks)
 
 
 <style scoped>
+
 .modern-dashboard {
   padding: 2rem;
   background: #f8faff;
