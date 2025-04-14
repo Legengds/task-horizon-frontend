@@ -7,7 +7,10 @@ export const createTask = (taskData) => {
       user_id: taskData.user_id,
       task_type: taskData.task_type,
       task_stage: taskData.task_stage,
-      task_context: taskData.task_context // 提供默认值防止null
+      task_context: taskData.task_context, // 提供默认值防止null
+      priority: taskData.priority,
+      schedule_log: taskData.schedule_log
+
     }
   })
 }

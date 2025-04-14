@@ -50,6 +50,38 @@
           class="modern-input"
           placeholder=" "
         >
+        <label class="input-label">任务阶段</label>
+      </div>
+
+      <div class="input-group">
+        <input 
+          v-model="formData.task_context" 
+          required 
+          class="modern-input"
+          placeholder=" "
+        >
+        <label class="input-label">任务上下文</label>
+      </div>
+
+      <div class="input-group">
+        <input 
+          v-model="formData.schedule_log" 
+          required 
+          class="modern-input"
+          placeholder=" "
+        >
+        <label class="input-label">任务执行记录</label>
+      </div>
+
+    
+
+      <div class="input-group">
+        <input 
+          v-model="formData.priority" 
+          required 
+          class="modern-input"
+          placeholder=" "
+        >
         <label class="input-label">任务优先级</label>
       </div>
 
@@ -112,8 +144,11 @@ onMounted(async () => {
 const initialFormData = { 
   user_id: '', 
   task_type: '', 
-  task_stage: '' ,
-  task_context: '' 
+  task_stage: 'handleProcess' ,
+  task_context: '{"clazz":[],"envs":[],"params":[]}' ,
+  schedule_log: '{"historyDatas":[],"lastData":{}}',
+  priority: ''
+  
 }
 
 const formData = ref({ ...initialFormData })
