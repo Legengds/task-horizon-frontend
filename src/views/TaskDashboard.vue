@@ -13,7 +13,6 @@
             {{ type }}
           </option>
         </select>
-         
       </div>
 
       <!-- 状态选择 -->
@@ -22,21 +21,11 @@
           v-model="filters.status"
           class="modern-select"
         >
-        <option :value="0">
-            全部
-          </option>
-          <option :value="1">
-            待执行
-          </option>
-          <option :value="2">
-            执行中
-          </option>
-          <option :value="4">
-            成功
-          </option>
-          <option :value="8">
-            失败
-          </option>
+          <option :value="0">全部</option>
+          <option :value="1">待执行</option>
+          <option :value="2">执行中</option>
+          <option :value="4">成功</option>
+          <option :value="8">失败</option>
         </select>
         <div class="select-arrow" />
       </div>
@@ -55,21 +44,70 @@
       :tasks="tasks"
       @refresh="loadTasks"
     />
+
+    <!-- 分页组件 -->
+    <!-- 修改分页组件部分 - 将这部分合并到主模板中 -->
+    <div class="pagination-container">
+      <button 
+        class="pagination-button"
+        :disabled="pagination.currentPage <= 1"
+        @click="handlePageChange(pagination.currentPage - 1)"
+      >
+        上一页
+      </button>
+      
+      <span class="page-info">
+        第 {{ pagination.currentPage }} 页 / 共 {{ pagination.totalPages }} 页
+        (共 {{ pagination.totalCount }} 条记录)
+      </span>
+      
+      <div class="page-input-group">
+        <input
+          v-model.number="pagination.inputPage"
+          type="number"
+          min="1"
+          :max="pagination.totalPages"
+          class="page-input"
+          @keyup.enter="goToPage"
+        >
+        <button
+          class="pagination-button"
+          @click="goToPage"
+        >
+          跳转
+        </button>
+      </div>
+      
+      <button
+        class="pagination-button"
+        :disabled="pagination.currentPage >= pagination.totalPages"
+        @click="handlePageChange(pagination.currentPage + 1)"
+      >
+        下一页
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getTaskList } from '@/api/asyncTask'
+import { getTaskList, getTaskCount } from '@/api/asyncTask'
 import TaskList from '@/components/TaskList.vue'
 import request from '@/utils/request'
 
 const tasks = ref([])
 const filters = ref({
-  taskType: '', // 对应后端的 task_type 参数
-  status: 0,    // 默认选中"全部"
-  limit: 100
+  taskType: '',
+  status: 0,
+  limit: 10 // 默认每页50条
 })
+const pagination = ref({
+  currentPage: 1,
+  totalPages: 1,
+  totalCount: 0,
+  inputPage: 1 // 添加输入页码绑定
+})
+
 // 新增任务类型列表
 const taskTypes = ref([])
 
@@ -78,23 +116,18 @@ const fetchTaskTypes = async () => {
     const response = await request.get('/api/task_schedule_cfg/type_list')
     console.log('任务类型响应数据:', response)
     
-    // 修改这里的判断逻辑
     if (Array.isArray(response)) {
-      // 如果response直接是数组
       taskTypes.value = response
     } else if (response && response.code === 0) {
-      // 如果response是对象且包含code和result
       taskTypes.value = response.result
     }
     
-    // 添加调试输出
     console.log('设置后的任务类型列表:', taskTypes.value)
   } catch (error) {
     console.error('获取任务类型失败:', error)
     taskTypes.value = []
   }
 }
-
 
 const isLoading = ref(false)
 onMounted(async () => {
@@ -103,24 +136,54 @@ onMounted(async () => {
   isLoading.value = false
 })
 
+// 加载任务数据
+// 修改加载任务方法
 const loadTasks = async () => {
   try {
-    const res = await getTaskList(filters.value)
-    console.log('完整响应数据:', res) // 调试关键点
-
-    tasks.value = res.taskList
+    // 获取任务列表和分页数据
+    const res = await getTaskList({
+      ...filters.value,
+      page: pagination.value.currentPage
+    })
     
+    // 获取总记录数
+    const countRes = await getTaskCount({
+      taskType: filters.value.taskType,
+      status: filters.value.status
+    })
+    
+    console.log('API响应数据:', countRes) // 调试日志
+    
+    tasks.value = res.taskList || []
+    pagination.value = {
+      currentPage: res.currentPage || 1,
+      totalPages: Math.ceil((countRes || 0) / filters.value.limit), // 使用可选链操作符
+      totalCount: countRes || 0, // 使用可选链操作符
+      inputPage: pagination.value.inputPage
+    }
   } catch (err) {
-    console.error('加载失败:', err.response?.data || err.message)
+    console.error('加载失败:', err)
   }
 }
 
-onMounted(loadTasks)
+// 分页切换方法
+const handlePageChange = (newPage) => {
+  if (newPage < 1 || newPage > pagination.value.totalPages) return
+  pagination.value.currentPage = newPage
+  loadTasks()
+}
+
+// 跳转到指定页
+// 修改跳转方法
+const goToPage = () => {
+  const page = parseInt(pagination.value.inputPage)
+  if (!isNaN(page) && page >= 1 && page <= pagination.value.totalPages) {
+    handlePageChange(page)
+  }
+}
 </script>
 
-
 <style scoped>
-
 .modern-dashboard {
   padding: 2rem;
   background: #f8faff;
@@ -260,9 +323,10 @@ onMounted(loadTasks)
     padding-right: 2.5rem;
   }
 }
+
 @media (min-width: 1024px) {
   .input-group {
-    flex-basis: 300px;  /* 大屏幕下基础宽度更大 */
+    flex-basis: 300px;
   }
 }
 
@@ -277,5 +341,49 @@ onMounted(loadTasks)
   .modern-input:not(:placeholder-shown) + .input-label {
     transform: translateY(-150%);
   }
+}
+
+/* 添加跳转按钮样式 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.pagination-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e0e7ff;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: #f8faff;
+  border-color: #4f46e5;
+}
+
+/* 添加页码输入框样式 */
+.page-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-input {
+  width: 60px;
+  height: 36px;
+  padding: 0 0.5rem;
+  border: 1px solid #e0e7ff;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.page-input:focus {
+  border-color: #4f46e5;
+  outline: none;
 }
 </style>

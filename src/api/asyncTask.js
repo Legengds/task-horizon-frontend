@@ -25,14 +25,23 @@ export const getTask = (taskId) => {
 
 
 export const getTaskList = (params) => {
-  return request.get('/api/task/task_list', {
+  return request.get('/api/task/page_task_list', {
     params: {
-      task_type: params.taskType, // 确保与后端接口参数名完全一致
+      task_type: params.taskType,
       status: params.status,
-      limit: params.limit
-    },
-    // 如果响应结构需要特殊处理，添加以下配置
-  
+      limit: params.limit,
+      page: params.page
+    }
+  })
+}
+
+// 添加获取总记录数的方法
+export const getTaskCount = (params) => {
+  return request.get('/api/task/task_count', {
+    params: {
+      task_type: params.taskType,
+      status: params.status
+    }
   })
 }
 
