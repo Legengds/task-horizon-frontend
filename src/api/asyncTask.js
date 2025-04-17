@@ -25,6 +25,16 @@ export const getTask = (taskId) => {
 
 
 export const getTaskList = (params) => {
+  return request.get('/api/task/task_list', {
+    params: {
+      task_type: params.taskType,
+      status: params.status,
+      limit: params.limit
+    }
+  })
+}
+
+export const getPageTaskList = (params) => {
   return request.get('/api/task/page_task_list', {
     params: {
       task_type: params.taskType,
@@ -59,5 +69,26 @@ export const updateTask = (taskData) => {
 export const getUserTasks = (userId, status) => {
   return request.get('/api/task/user_task_list', {
     params: { user_id: userId, status_list: status }
+  })
+}
+
+// 获取任务报警统计数据
+export const getTaskAlarmStatistics = (timeRange = 0) => {
+  return request.get('/api/task/alarm_statistics', {
+    params: { time_range: timeRange }
+  }).then(response => {
+    // 直接返回数据，不做额外处理
+    console.log('API返回的原始报警数据:', response);
+    return response;
+  }).catch(error => {
+    console.error('获取报警统计数据失败:', error);
+    throw error;
+  });
+}
+
+// 获取重试率最高的任务类型
+export const getHighRetryTasks = (limit = 5) => {
+  return request.get('/api/task/high_retry_tasks', {
+    params: { limit }
   })
 }

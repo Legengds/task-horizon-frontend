@@ -91,7 +91,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getTaskList, getTaskCount } from '@/api/asyncTask'
+import { getPageTaskList, getTaskCount } from '@/api/asyncTask'
 import TaskList from '@/components/TaskList.vue'
 import request from '@/utils/request'
 
@@ -99,7 +99,7 @@ const tasks = ref([])
 const filters = ref({
   taskType: '',
   status: 0,
-  limit: 10 // 默认每页50条
+  limit: 10 // 默认每页10条
 })
 const pagination = ref({
   currentPage: 1,
@@ -141,7 +141,7 @@ onMounted(async () => {
 const loadTasks = async () => {
   try {
     // 获取任务列表和分页数据
-    const res = await getTaskList({
+    const res = await getPageTaskList({
       ...filters.value,
       page: pagination.value.currentPage
     })
